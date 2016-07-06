@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "888884571906",
+    "firebase_url": "https://photoedxandrea.firebaseio.com",
+    "project_id": "photoedxandrea",
+    "storage_bucket": "photoedxandrea.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:888884571906:android:8c1cb6434e9170a3",
+        "android_client_info": {
+          "package_name": "com.example.andrearodriguez.photofeed"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "888884571906-he0i7fmhidsaarced28nev7uqrm8eo39.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.andrearodriguez.photofeed",
+            "certificate_hash": "39F940D5B6F2721B299BF982785AC526CE0564E2"
+          }
+        },
+        {
+          "client_id": "888884571906-m6ahfvj810l5kt1prbd6sqcv4nvhv4ht.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAV_D4X-jbTwohYBz1TBCgy0dsHu5gOXhU"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "888884571906-m6ahfvj810l5kt1prbd6sqcv4nvhv4ht.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
