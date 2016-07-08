@@ -11,7 +11,7 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 
-import com.example.andrearodriguez.photofeed.MainActivity;
+import com.example.andrearodriguez.photofeed.main.ui.MainActivity;
 import com.example.andrearodriguez.photofeed.PhotoFeedApp;
 import com.example.andrearodriguez.photofeed.R;
 import com.example.andrearodriguez.photofeed.login.LogingPresenter;
