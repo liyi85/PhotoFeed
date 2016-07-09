@@ -5,9 +5,15 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.database.Cursor;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.Parcelable;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
@@ -33,8 +39,19 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 public class MainActivity extends AppCompatActivity implements MainView,
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
@@ -50,11 +67,13 @@ public class MainActivity extends AppCompatActivity implements MainView,
     MainSectionPagerAdapter adapter;
     SharedPreferences sharedPreferences;
 
+    private String photoPath;
     private PhotoFeedApp app;
     private GoogleApiClient apiClient;
     private Location lastKnownLocation;
 
     private boolean resolvingError = false;
+    private static final int REQUEST_PICTURE = 1;
     private static final int REQUEST_RESOLVE_ERROR = 0;
     private static final int PERMISSIONS_REQUEST_LOCATION = 1;
 
@@ -112,7 +131,9 @@ public class MainActivity extends AppCompatActivity implements MainView,
 
             @Override
             public void uploadPhoto(Location location, String path) {
-
+                if(path != null){
+                    showSnackbar(path);
+                }
             }
 
             @Override
@@ -138,6 +159,29 @@ public class MainActivity extends AppCompatActivity implements MainView,
     protected void onDestroy() {
         presenter.onDestroy();
         super.onDestroy();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == REQUEST_RESOLVE_ERROR){
+            resolvingError = false;
+            if(requestCode == RESULT_OK){
+                if(!apiClient.isConnecting()&& !apiClient.isConnected()){
+                    apiClient.connect();
+                }
+            }
+        }else if (requestCode == REQUEST_PICTURE) {
+                if(resultCode == RESULT_OK){
+                    boolean fromCamera = (data == null || data.getData() == null );
+                    if(fromCamera){
+                        addToGallery();
+                    }else{
+                        photoPath = getRealPathFromURI(data.getData());
+                    }
+                    presenter.uploadPhoto(lastKnownLocation, photoPath);
+                }
+        }
     }
 
     @Override
@@ -179,7 +223,7 @@ public class MainActivity extends AppCompatActivity implements MainView,
             lastKnownLocation = LocationServices.FusedLocationApi.getLastLocation(apiClient);
             Snackbar.make(viewPager, lastKnownLocation.toString(), Snackbar.LENGTH_SHORT).show();
         } else {
-            Snackbar.make(viewPager, R.string.main_error_location_noavaliable, Snackbar.LENGTH_SHORT).show();
+            showSnackbar(R.string.main_error_location_noavaliable);
         }
     }
 
@@ -196,7 +240,7 @@ public class MainActivity extends AppCompatActivity implements MainView,
                     if (LocationServices.FusedLocationApi.getLocationAvailability(apiClient).isLocationAvailable()) {
                         lastKnownLocation = LocationServices.FusedLocationApi.getLastLocation(apiClient);
                     } else {
-                        Snackbar.make(viewPager, R.string.main_error_location_noavaliable, Snackbar.LENGTH_SHORT).show();
+                        showSnackbar(R.string.main_error_location_noavaliable);
                     }
                 }
                 return;
@@ -229,19 +273,6 @@ public class MainActivity extends AppCompatActivity implements MainView,
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == REQUEST_RESOLVE_ERROR){
-            resolvingError = false;
-            if(requestCode == RESULT_OK){
-                if(!apiClient.isConnecting()&& !apiClient.isConnected()){
-                    apiClient.connect();
-                }
-            }
-        }
-    }
-
-    @Override
     public void onUploadInit() {
 
     }
@@ -255,4 +286,116 @@ public class MainActivity extends AppCompatActivity implements MainView,
     public void onUploadError(String error) {
 
     }
+    @OnClick(R.id.fab)
+    public void takePicture(){
+        Intent chooserIntent = null;
+
+        List<Intent> intentList = new ArrayList<>();
+        Intent pickIntent = new Intent(Intent.ACTION_PICK,
+                                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+
+        Intent cameraInten = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        cameraInten.putExtra("return-data", true);
+
+        File photoFile = getFile();
+        if(photoFile != null){
+            cameraInten.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile));
+
+            if(cameraInten.resolveActivity(getPackageManager()) != null){
+                intentList = addIntentsToList(intentList, cameraInten);
+            }
+        }
+        if(pickIntent.resolveActivity(getPackageManager()) != null){
+            intentList = addIntentsToList(intentList, pickIntent);
+        }
+        if(intentList.size() > 0){
+            chooserIntent = Intent.createChooser(intentList.remove(intentList.size() - 1),
+                                                getString(R.string.main_message_picture_source));
+            chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, intentList.toArray(new Parcelable[]{}));
+        }
+        if(chooserIntent!=null){
+            startActivityForResult(chooserIntent, REQUEST_PICTURE);
+        }
+
+    }
+    private File getFile(){
+        File photoFile = null;
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+        try {
+            photoFile = File.createTempFile(imageFileName, ".jpg", storageDir);
+        } catch (IOException e) {
+            Snackbar.make(viewPager, R.string.main_error_dispatch_camera, Snackbar.LENGTH_SHORT).show();
+        }
+        photoPath = photoFile.getAbsolutePath();
+        return photoFile;
+    }
+
+    private List<Intent> addIntentsToList(List<Intent> list, Intent intent){
+        List<ResolveInfo> resInfo = getPackageManager().queryIntentActivities(intent, 0);
+        for(ResolveInfo resolveInfo: resInfo){
+            String packageName = resolveInfo.activityInfo.packageName;
+            Intent targetIntent = new Intent(intent);
+            targetIntent.setPackage(packageName);
+            list.add(targetIntent);
+        }
+        return list;
+    }
+
+    private void showSnackbar(String msg){
+        Snackbar.make(viewPager, msg, Snackbar.LENGTH_SHORT).show();
+    }
+    private void showSnackbar(int strResult){
+        Snackbar.make(viewPager, strResult, Snackbar.LENGTH_SHORT).show();
+    }
+    private void addToGallery() {
+        Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+        File file = new File(photoPath);
+        Uri contentUri = Uri.fromFile(file);
+        mediaScanIntent.setData(contentUri);
+        sendBroadcast(mediaScanIntent);
+    }
+
+    private String getRealPathFromURI(Uri contentURI) {
+        String result = null;
+        Cursor cursor = getContentResolver().query(contentURI, null, null, null, null);
+        if (cursor == null) {
+            result = contentURI.getPath();
+        } else {
+            if (contentURI.toString().contains("mediaKey")){
+                cursor.close();
+
+                try {
+                    File file = File.createTempFile("tempImg", ".jpg", getCacheDir());
+                    InputStream input = getContentResolver().openInputStream(contentURI);
+                    OutputStream output = new FileOutputStream(file);
+
+                    try {
+                        byte[] buffer = new byte[4 * 1024];
+                        int read;
+
+                        while ((read = input.read(buffer)) != -1) {
+                            output.write(buffer, 0, read);
+                        }
+                        output.flush();
+                        result = file.getAbsolutePath();
+                    } finally {
+                        output.close();
+                        input.close();
+                    }
+
+                } catch (Exception e) {
+                }
+            } else {
+                cursor.moveToFirst();
+                int dataColumn = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
+                result = cursor.getString(dataColumn);
+                cursor.close();
+            }
+
+        }
+        return result;
+    }
 }
+
