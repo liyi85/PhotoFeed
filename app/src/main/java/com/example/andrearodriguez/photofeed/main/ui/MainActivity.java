@@ -32,7 +32,6 @@ import com.example.andrearodriguez.photofeed.PhotoMapFragment;
 import com.example.andrearodriguez.photofeed.R;
 import com.example.andrearodriguez.photofeed.login.ui.LoginActivity;
 import com.example.andrearodriguez.photofeed.main.MainPresenter;
-import com.example.andrearodriguez.photofeed.main.events.MainEvent;
 import com.example.andrearodriguez.photofeed.main.ui.adapters.MainSectionPagerAdapter;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -49,6 +48,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.inject.Inject;
+
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -63,8 +64,11 @@ public class MainActivity extends AppCompatActivity implements MainView,
     @Bind(R.id.viewPager)
     ViewPager viewPager;
 
+    @Inject
     MainPresenter presenter;
+    @Inject
     MainSectionPagerAdapter adapter;
+    @Inject
     SharedPreferences sharedPreferences;
 
     private String photoPath;
@@ -101,9 +105,11 @@ public class MainActivity extends AppCompatActivity implements MainView,
     }
 
     private void setupNavigation() {
+        //PhotoFeedApp app = (PhotoFeedApp) getApplication();
         String email = sharedPreferences.getString(app.getEmailKey(), getString(R.string.app_name));
         toolbar.setTitle(email);
         setSupportActionBar(toolbar);
+
         viewPager.setAdapter(adapter);
         tabs.setupWithViewPager(viewPager);
     }
@@ -111,48 +117,20 @@ public class MainActivity extends AppCompatActivity implements MainView,
     private void setupInjection() {
         String[] titles = new String[]{getString(R.string.main_title_list), getString(R.string.main_title_maps)};
         Fragment[] fragments = new Fragment[]{new PhotoListFragment(), new PhotoMapFragment()};
-        adapter = new MainSectionPagerAdapter(getSupportFragmentManager(),titles, fragments);
-        sharedPreferences = getSharedPreferences(app.getSharedPreferencesName(), MODE_PRIVATE);
-        presenter = new MainPresenter() {
-            @Override
-            public void onCreate() {
-
-            }
-
-            @Override
-            public void onDestroy() {
-
-            }
-
-            @Override
-            public void logout() {
-
-            }
-
-            @Override
-            public void uploadPhoto(Location location, String path) {
-                if(path != null){
-                    showSnackbar(path);
-                }
-            }
-
-            @Override
-            public void onEventMainThread(MainEvent event) {
-
-            }
-        };
+//
+        app.getMainComponent(this, getSupportFragmentManager(), fragments, titles).inject(this);
     }
 
     @Override
     protected void onStop() {
+        apiClient.disconnect();
         super.onStop();
-        apiClient.connect();
     }
 
     @Override
     protected void onStart() {
-        apiClient.disconnect();
         super.onStart();
+        apiClient.connect();
     }
 
     @Override
@@ -274,16 +252,18 @@ public class MainActivity extends AppCompatActivity implements MainView,
 
     @Override
     public void onUploadInit() {
+        showSnackbar(R.string.main_notice_upload_init);
 
     }
 
     @Override
     public void onUploadComplete() {
-
+        showSnackbar(R.string.main_notice_upload_complete);
     }
 
     @Override
     public void onUploadError(String error) {
+        showSnackbar(error);
 
     }
     @OnClick(R.id.fab)

@@ -1,6 +1,8 @@
 package com.example.andrearodriguez.photofeed;
 
 import android.app.Application;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 
 import com.example.andrearodriguez.photofeed.domine.di.DomainModule;
 import com.example.andrearodriguez.photofeed.libs.base.di.LibsModule;
@@ -8,6 +10,10 @@ import com.example.andrearodriguez.photofeed.login.di.DaggerLoginComponent;
 import com.example.andrearodriguez.photofeed.login.di.LoginComponent;
 import com.example.andrearodriguez.photofeed.login.di.LoginModule;
 import com.example.andrearodriguez.photofeed.login.ui.LoginView;
+import com.example.andrearodriguez.photofeed.main.di.DaggerMainComponent;
+import com.example.andrearodriguez.photofeed.main.di.MainComponent;
+import com.example.andrearodriguez.photofeed.main.di.MainModule;
+import com.example.andrearodriguez.photofeed.main.ui.MainView;
 import com.firebase.client.Firebase;
 
 /**
@@ -53,6 +59,15 @@ public class PhotoFeedApp extends Application {
                 .domainModule(domainModule)
                 .libsModule(new LibsModule(null))
                 .loginModule(new LoginModule(view))
+                .build();
+    }
+    public MainComponent getMainComponent(MainView view, FragmentManager manager, Fragment[] fragments, String[] titles){
+        return DaggerMainComponent
+                .builder()
+                .photoFeedAppModule(photoFeedAppModule)
+                .domainModule(domainModule)
+                .libsModule(new LibsModule(null))
+                .mainModule(new MainModule(view, titles, fragments, manager))
                 .build();
     }
 }
