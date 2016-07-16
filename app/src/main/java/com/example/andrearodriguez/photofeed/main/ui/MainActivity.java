@@ -27,12 +27,13 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.example.andrearodriguez.photofeed.PhotoFeedApp;
-import com.example.andrearodriguez.photofeed.PhotoListFragment;
 import com.example.andrearodriguez.photofeed.PhotoMapFragment;
 import com.example.andrearodriguez.photofeed.R;
 import com.example.andrearodriguez.photofeed.login.ui.LoginActivity;
 import com.example.andrearodriguez.photofeed.main.MainPresenter;
+import com.example.andrearodriguez.photofeed.main.events.MainEvent;
 import com.example.andrearodriguez.photofeed.main.ui.adapters.MainSectionPagerAdapter;
+import com.example.andrearodriguez.photofeed.photolist.ui.PhotoListFragment;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -115,10 +116,41 @@ public class MainActivity extends AppCompatActivity implements MainView,
     }
 
     private void setupInjection() {
+
+
         String[] titles = new String[]{getString(R.string.main_title_list), getString(R.string.main_title_maps)};
         Fragment[] fragments = new Fragment[]{new PhotoListFragment(), new PhotoMapFragment()};
 //
         app.getMainComponent(this, getSupportFragmentManager(), fragments, titles).inject(this);
+
+        adapter = new MainSectionPagerAdapter(getSupportFragmentManager(), titles, fragments);
+        sharedPreferences = getSharedPreferences(app.getSharedPreferencesName(), MODE_PRIVATE);
+        presenter = new MainPresenter() {
+            @Override
+            public void onCreate() {
+
+            }
+
+            @Override
+            public void onDestroy() {
+
+            }
+
+            @Override
+            public void logout() {
+
+            }
+
+            @Override
+            public void uploadPhoto(Location location, String path) {
+
+            }
+
+            @Override
+            public void onEventMainThread(MainEvent event) {
+
+            }
+        };
     }
 
     @Override
