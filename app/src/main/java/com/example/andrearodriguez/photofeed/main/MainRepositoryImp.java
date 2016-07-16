@@ -1,6 +1,7 @@
 package com.example.andrearodriguez.photofeed.main;
 
 import android.location.Location;
+import android.util.Log;
 
 import com.example.andrearodriguez.photofeed.domine.FirebaseAPI;
 import com.example.andrearodriguez.photofeed.entities.Photo;
@@ -35,13 +36,19 @@ public class MainRepositoryImp implements MainRepository{
     public void uploadPhoto(Location location, String path) {
         final String newPhotoId = firebaseAPI.create();
         final Photo photo = new Photo();
+        String authEmail = firebaseAPI.getAuthEmail();
+        Log.i("authEmail", authEmail);
+
         photo.setId(newPhotoId);
-        photo.setEmail(firebaseAPI.getAuthEmail());
+        photo.setEmail(authEmail);
+
         if(location != null){
             photo.setLatitud(location.getLatitude());
             photo.setLongitud(location.getLongitude());
         }
+
         post(MainEvent.UPLOAD_INIT);
+
         ImageStorageFinishedListener listener = new ImageStorageFinishedListener() {
             @Override
             public void onSuccess() {

@@ -1,5 +1,7 @@
 package com.example.andrearodriguez.photofeed.photolist.ui;
 
+import com.example.andrearodriguez.photofeed.entities.Photo;
+
 /**
  * Created by andrearodriguez on 7/15/16.
  */
@@ -9,7 +11,7 @@ public interface PhotoListView {
     void showProgress();
     void hideProgress();
 
-    void addPhoto();
-    void removePhoto();
+    void addPhoto(Photo photo);
+    void removePhoto(Photo photo);
     void onPhotosError(String error);
 }

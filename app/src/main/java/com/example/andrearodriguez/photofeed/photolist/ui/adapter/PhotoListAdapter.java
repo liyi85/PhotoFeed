@@ -46,8 +46,37 @@ public class PhotoListAdapter extends RecyclerView.Adapter<PhotoListAdapter.View
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
+        Photo currentPhoto = photoList.get(position);
+        holder.setOnItemClickListener(currentPhoto, onItemClickListernY);
 
+        imageLoader.load(holder.imgMain, currentPhoto.getUrl());
+        imageLoader.load(holder.imgAvatar, utils.getAvatarUrl(currentPhoto.getEmail()));
+        holder.txtUser.setText(currentPhoto.getEmail());
+        double lat = currentPhoto.getLatitud();
+        double lng = currentPhoto.getLongitud();
 
+        if (lat != 0.0 && lng != 0.0) {
+            holder.txtPlace.setText(utils.getFromLocation(lat, lng));
+            holder.txtPlace.setVisibility(View.VISIBLE);
+        } else {
+            holder.txtPlace.setVisibility(View.GONE);
+        }
+
+        if (currentPhoto.isPublishedByMe()){
+            holder.imgDelete.setVisibility(View.VISIBLE);
+        } else {
+            holder.imgDelete.setVisibility(View.GONE);
+        }
+
+    }
+    public void addPhoto(Photo photo) {
+        photoList.add(0, photo);
+        notifyDataSetChanged();
+    }
+
+    public void removePhoto(Photo photo) {
+        photoList.remove(photo);
+        notifyDataSetChanged();
     }
 
     @Override

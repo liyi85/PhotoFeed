@@ -14,6 +14,12 @@ import com.example.andrearodriguez.photofeed.main.di.DaggerMainComponent;
 import com.example.andrearodriguez.photofeed.main.di.MainComponent;
 import com.example.andrearodriguez.photofeed.main.di.MainModule;
 import com.example.andrearodriguez.photofeed.main.ui.MainView;
+import com.example.andrearodriguez.photofeed.photolist.di.DaggerPhotoListComponet;
+import com.example.andrearodriguez.photofeed.photolist.di.PhotoListComponet;
+import com.example.andrearodriguez.photofeed.photolist.di.PhotoListModule;
+import com.example.andrearodriguez.photofeed.photolist.ui.PhotoListFragment;
+import com.example.andrearodriguez.photofeed.photolist.ui.PhotoListView;
+import com.example.andrearodriguez.photofeed.photolist.ui.adapter.OnItemClickListernY;
 import com.firebase.client.Firebase;
 
 /**
@@ -69,5 +75,16 @@ public class PhotoFeedApp extends Application {
                 .libsModule(new LibsModule(null))
                 .mainModule(new MainModule(view, titles, fragments, manager))
                 .build();
+    }
+    public PhotoListComponet getPhotoListComponet(PhotoListFragment fragment, PhotoListView view, OnItemClickListernY onItemClickListener) {
+
+        return DaggerPhotoListComponet
+                .builder()
+                .photoFeedAppModule(photoFeedAppModule)
+                .domainModule(domainModule)
+                .libsModule(new LibsModule(fragment))
+                .photoListModule(new PhotoListModule(view, onItemClickListener))
+                .build();
+
     }
 }

@@ -31,7 +31,6 @@ import com.example.andrearodriguez.photofeed.PhotoMapFragment;
 import com.example.andrearodriguez.photofeed.R;
 import com.example.andrearodriguez.photofeed.login.ui.LoginActivity;
 import com.example.andrearodriguez.photofeed.main.MainPresenter;
-import com.example.andrearodriguez.photofeed.main.events.MainEvent;
 import com.example.andrearodriguez.photofeed.main.ui.adapters.MainSectionPagerAdapter;
 import com.example.andrearodriguez.photofeed.photolist.ui.PhotoListFragment;
 import com.google.android.gms.common.ConnectionResult;
@@ -117,40 +116,47 @@ public class MainActivity extends AppCompatActivity implements MainView,
 
     private void setupInjection() {
 
+        String[] titles = new String[]{ getString(R.string.main_title_list),
+                getString(R.string.main_title_maps)};
 
-        String[] titles = new String[]{getString(R.string.main_title_list), getString(R.string.main_title_maps)};
-        Fragment[] fragments = new Fragment[]{new PhotoListFragment(), new PhotoMapFragment()};
-//
+        Fragment[] fragments = new Fragment[]{ new PhotoListFragment(),
+                new PhotoMapFragment()};
+
+        PhotoFeedApp app = (PhotoFeedApp) getApplication();
         app.getMainComponent(this, getSupportFragmentManager(), fragments, titles).inject(this);
-
-        adapter = new MainSectionPagerAdapter(getSupportFragmentManager(), titles, fragments);
-        sharedPreferences = getSharedPreferences(app.getSharedPreferencesName(), MODE_PRIVATE);
-        presenter = new MainPresenter() {
-            @Override
-            public void onCreate() {
-
-            }
-
-            @Override
-            public void onDestroy() {
-
-            }
-
-            @Override
-            public void logout() {
-
-            }
-
-            @Override
-            public void uploadPhoto(Location location, String path) {
-
-            }
-
-            @Override
-            public void onEventMainThread(MainEvent event) {
-
-            }
-        };
+//        String[] titles = new String[]{getString(R.string.main_title_list), getString(R.string.main_title_maps)};
+//        Fragment[] fragments = new Fragment[]{new PhotoListFragment(), new PhotoMapFragment()};
+////
+//        app.getMainComponent(this, getSupportFragmentManager(), fragments, titles).inject(this);
+//
+//        adapter = new MainSectionPagerAdapter(getSupportFragmentManager(), titles, fragments);
+//        sharedPreferences = getSharedPreferences(app.getSharedPreferencesName(), MODE_PRIVATE);
+//        presenter = new MainPresenter() {
+//            @Override
+//            public void onCreate() {
+//
+//            }
+//
+//            @Override
+//            public void onDestroy() {
+//
+//            }
+//
+//            @Override
+//            public void logout() {
+//
+//            }
+//
+//            @Override
+//            public void uploadPhoto(Location location, String path) {
+//
+//            }
+//
+//            @Override
+//            public void onEventMainThread(MainEvent event) {
+//
+//            }
+ //       };
     }
 
     @Override
@@ -243,7 +249,10 @@ public class MainActivity extends AppCompatActivity implements MainView,
             case PERMISSIONS_REQUEST_LOCATION: {
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                            != PackageManager.PERMISSION_GRANTED
+                            && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                            != PackageManager.PERMISSION_GRANTED) {
 
                         return;
                     }

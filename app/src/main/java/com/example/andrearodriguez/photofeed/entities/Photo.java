@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  * Created by andrearodriguez on 7/5/16.
  */
 public class Photo {
-
     @JsonIgnore
     private String id;
 
