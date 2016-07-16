@@ -69,7 +69,7 @@ public class LoginRepositoryImpl implements LoginRepository {
     private void postEvent(int type, String errorMessage, String currentUserEmail){
         LoginEvent loginEvent = new LoginEvent();
         loginEvent.setEventType(type);
-        loginEvent.getCurrenUserEmail();
+        loginEvent.setCurrenUserEmail(currentUserEmail);
         eventBus.post(loginEvent);
     }
 
