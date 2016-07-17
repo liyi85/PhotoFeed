@@ -27,7 +27,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.example.andrearodriguez.photofeed.PhotoFeedApp;
-import com.example.andrearodriguez.photofeed.PhotoMapFragment;
+import com.example.andrearodriguez.photofeed.photomap.ui.PhotoMapFragment;
 import com.example.andrearodriguez.photofeed.R;
 import com.example.andrearodriguez.photofeed.login.ui.LoginActivity;
 import com.example.andrearodriguez.photofeed.main.MainPresenter;

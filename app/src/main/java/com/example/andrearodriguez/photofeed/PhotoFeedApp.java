@@ -20,6 +20,11 @@ import com.example.andrearodriguez.photofeed.photolist.di.PhotoListModule;
 import com.example.andrearodriguez.photofeed.photolist.ui.PhotoListFragment;
 import com.example.andrearodriguez.photofeed.photolist.ui.PhotoListView;
 import com.example.andrearodriguez.photofeed.photolist.ui.adapter.OnItemClickListernY;
+import com.example.andrearodriguez.photofeed.photomap.di.DaggerPhotoMapComponet;
+import com.example.andrearodriguez.photofeed.photomap.di.PhotoMapComponet;
+import com.example.andrearodriguez.photofeed.photomap.di.PhotoMapModule;
+import com.example.andrearodriguez.photofeed.photomap.ui.PhotoMapFragment;
+import com.example.andrearodriguez.photofeed.photomap.ui.PhotoMapView;
 import com.firebase.client.Firebase;
 
 /**
@@ -86,5 +91,15 @@ public class PhotoFeedApp extends Application {
                 .photoListModule(new PhotoListModule(view, onItemClickListener))
                 .build();
 
+    }
+
+    public PhotoMapComponet getMapComponent(PhotoMapFragment photoMapFragment, PhotoMapView view) {
+        return DaggerPhotoMapComponet
+                .builder()
+                .photoFeedAppModule(photoFeedAppModule)
+                .domainModule(domainModule)
+                .libsModule(new LibsModule(photoMapFragment))
+                .photoMapModule(new PhotoMapModule(view))
+                .build();
     }
 }
