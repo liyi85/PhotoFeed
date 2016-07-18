@@ -14,32 +14,52 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.example.andrearodriguez.photofeed.PhotoFeedApp;
 import com.example.andrearodriguez.photofeed.R;
+import com.example.andrearodriguez.photofeed.domine.Util;
 import com.example.andrearodriguez.photofeed.entities.Photo;
+import com.example.andrearodriguez.photofeed.libs.base.ImageLoader;
 import com.example.andrearodriguez.photofeed.photomap.PhotoMapPresenter;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.inject.Inject;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import de.hdodenhof.circleimageview.CircleImageView;
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class PhotoMapFragment extends Fragment implements PhotoMapView, OnMapReadyCallback {
+public class PhotoMapFragment extends Fragment implements PhotoMapView, OnMapReadyCallback, GoogleMap.InfoWindowAdapter {
 
 
     @Bind(R.id.containerMap)
     FrameLayout containerMap;
+
     @Inject
     PhotoMapPresenter presenter;
 
+    @Inject
+    Util util;
+
+    @Inject
+    ImageLoader imageLoader;
+
     private GoogleMap map;
+    private HashMap<Marker, Photo> markers;
 
     private static final int PERMISSIONS_REQUEST_LOCATION = 1;
 
@@ -61,8 +81,9 @@ public class PhotoMapFragment extends Fragment implements PhotoMapView, OnMapRea
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setupInjection();
+        markers = new HashMap<Marker, Photo>();
         presenter.onCreate();
-        presenter.subscribe();
+
     }
 
     @Override
@@ -94,12 +115,23 @@ public class PhotoMapFragment extends Fragment implements PhotoMapView, OnMapRea
 
     @Override
     public void addPhoto(Photo photo) {
-
+        LatLng location = new LatLng(photo.getLatitud(), photo.getLongitud());
+        Marker marker = map.addMarker(new MarkerOptions().position(location));
+        map.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 15));
+        markers.put(marker, photo);
     }
 
     @Override
     public void removePhoto(Photo photo) {
-
+        for(Map.Entry<Marker, Photo> entry : markers.entrySet()) {
+            Photo currentPhoto = entry.getValue();
+            Marker currentMarker = entry.getKey();
+            if (currentPhoto.getId().equals(photo.getId())) {
+                currentMarker.remove();
+                markers.remove(currentMarker);
+                break;
+            }
+        }
     }
 
     @Override
@@ -110,7 +142,8 @@ public class PhotoMapFragment extends Fragment implements PhotoMapView, OnMapRea
     @Override
     public void onMapReady(GoogleMap googleMap) {
         map = googleMap;
-
+        presenter.subscribe();
+        map.setInfoWindowAdapter(this);
         if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSIONS_REQUEST_LOCATION);
@@ -137,5 +170,25 @@ public class PhotoMapFragment extends Fragment implements PhotoMapView, OnMapRea
 
             }
         }
+    }
+
+    @Override
+    public View getInfoWindow(Marker marker) {
+        return null;
+    }
+
+    @Override
+    public View getInfoContents(Marker marker) {
+        View view = getActivity().getLayoutInflater().inflate(R.layout.info_window, null);
+        Photo photo = markers.get(marker);
+
+        CircleImageView imgAvatar = (CircleImageView) view.findViewById(R.id.imgAvatar);
+        TextView txtUser = (TextView) view.findViewById(R.id.txtUser);
+        ImageView imgMain = (ImageView) view.findViewById(R.id.imgMain);
+
+        imageLoader.load(imgMain, photo.getUrl());
+        imageLoader.load(imgAvatar, util.getAvatarUrl(photo.getEmail()));
+        txtUser.setText(photo.getEmail());
+        return view;
     }
 }
